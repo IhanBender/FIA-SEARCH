@@ -32,6 +32,7 @@ class SearchProblem:
         Returns the start state for the search problem.
         """
         util.raiseNotDefined()
+        return 
 
     def isGoalState(self, state):
         """
@@ -72,6 +73,45 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def search(problem, struct):
+    # Recebe uma estrutura de dados propria para a busca solicitada
+    struct.push([(problem.getStartState(), "Stop", 0)])
+    # Lista com estados expandidos
+    expandidos = []
+
+    # Enquanto a estrutura nao estiver vazia
+    while not struct.isEmpty():
+        # Caminho retira um elemento da fila. O elemento constara em uma lista com o caminho percorrido do estado inicial ate determinado estado
+        caminho = struct.pop()
+        # estado recebe o successor do ultimo estado no caminho
+        estado = caminho[len(caminho) - 1][0]
+        # Se o estado ainda nao foi expandido
+        if estado not in expandidos:
+            # Se o estado for o objetivo
+            if problem.isGoalState(estado):
+                # directions e uma lista com todas as direcoes partindo do estado inicial para o final
+                directions = []
+                for estado in caminho:
+                    # Adiciona os campos de action dos estados a directions
+                    directions.append(estado[1])
+                # Retorna a lista de direcoes
+                return directions[1:]
+            #Inclui o estado na lista de expandidos
+            expandidos.append(estado)
+            # Se nao for o estado final, verifica todos os sucessores do estado
+            for sucessor in problem.getSuccessors(estado):
+                # Se o sucessor nao foi expandido, cria uma nova lista com o caminho atual + o sucessor
+                if sucessor[0] not in expandidos:
+                    novoCaminho = caminho[:]
+                    novoCaminho.append(sucessor)
+                    # Insere na estrutura
+                    struct.push(novoCaminho)
+    return 
+
+
+
+
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,12 +127,14 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pilha = util.Stack()
+    return search(problem, pilha)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fila = util.Queue()
+    return search(problem, fila)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
