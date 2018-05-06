@@ -229,21 +229,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     from util import manhattanDistance
 
     def createPath(finalNode, father):
-        stack = util.Stack()
         path = []
         node = finalNode
 
         # While node is not its own father (not in start node)
         while node != father[node]:
-            # Push node to stack
-            stack.push(node[1])
-            # node becomes it's father
+            # Append direction to path init
+            path = [node[1]] + path
+            # Node receives it's own father
             node = father[node]
-
-        # Tira o nodo inicial
-        while not stack.isEmpty:
-            value = stack.pop()
-            path.append(value)
 
         return path
 
