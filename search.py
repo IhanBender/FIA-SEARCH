@@ -167,36 +167,31 @@ def uniformCostSearch(problem, goal):
                 substituir aquele no borda por caminho-ate-filho
             """
 
-def hillClimbingSearch(problem, goal):
+def hillClimbingSearch(problem, heuristic):
     # i = false indica um pico
-    i = true
+    i = True
     # Estado inicial
     estado = (problem.getStartState(), "Stop", 0)
     expandidos = []
     # Lista com o caminho percorrido
     caminho = []
     while i:
-        i = false
+        i = False
         # Verifica todos os sucessores do estado atual
-        for sucessor in problem.getSuccessors(estado):
+        for sucessor in problem.getSuccessors(estado[0]):
             # Compara as distancias dos estados atual e sucessor em relacao ao objetivo
-            if util.manhattanDistance(estado[0], goal) > util.manhattanDistance(sucessor[0], goal):
+            if heuristic(estado[0], problem) > heuristic(sucessor[0], problem):
                 # Se encontrar um maior, continua procurando
-                i = true
+                i = True
                 # sucessor vira o estado atual
                 estado = sucessor
         # Adiciona o estado aos explorados
         # Se um novo estado foi visitado, inclui no caminho
         if i:
-            explorados.append(estado)
+            expandidos.append(estado)
             caminho.append(estado[1])
-    # directions e uma lista com todas as direcoes partindo do estado inicial para o final
-    directions = []
-    for estado in caminho:
-        # Adiciona os campos de action dos estados a directions
-        directions.append(estado[1])
     # Retorna a lista de direcoes
-    return (len(expandidos), directions[1:], len(caminho))
+    return caminho
 
 def simulatedAnnealingSearch(problem, goal, schedule):
     # Estado inicial
@@ -229,26 +224,31 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     from util import manhattanDistance
 
     def createPath(finalNode, father):
+        stack = util.Stack()
         path = []
         node = finalNode
 
         # While node is not its own father (not in start node)
         while node != father[node]:
-            # Append direction to path init
-            path = [node[1]] + path
-            # Node receives it's own father
+            # Push node to stack
+            stack.push(node[1])
+            # node becomes it's father
             node = father[node]
+
+        # Creates path from starting node to goal
+        while not stack.isEmpty():
+            value = stack.pop()
+            path.append(value)
 
         return path
 
 
     # Important variables
     startState = (problem.getStartState(), "Stop", 0)
-    goalState = problem.goal
 
     # Priority Queue for non explored nodes
     nonExplored = util.PriorityQueue()
-    nonExplored.push(startState, manhattanDistance(startState[0], goalState))
+    nonExplored.push(startState, heuristic(startState[0], problem))
 
     # List of explored nodes (empty at begin)
     explored = []
@@ -259,7 +259,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # Dicttionary that keeps the shortest distance between explored nodes and the inicial one
     distance = {}
 
-    # Inicialize both structures with inicial info about starter node
+    # Initialize both structures with initial info about starter node
     father[startState] = startState
     distance[startState] = 0
     # ** Distance considers manhattanDistance
@@ -276,24 +276,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         # For each possible successor of node
         for successor in problem.getSuccessors(newNode[0]):
             # If successor was already discovered (found or explored)
-            if (successor in discovered) or (successor in explored):
-                # If reached it with sortest path
-                if distance[successor] > distance[newNode] + 1:
-                    # Refresh its distance to inicial and father
-                    distance[successor] = distance[newNode] + 1
-                    father[successor] = newNode
-            else:
+            if not successor in discovered:
                 # Create father and distance
-                distance[successor] = distance[newNode] + 1
+                distance[successor] = distance[newNode] + successor[2]
                 father[successor] = newNode
-                # Inclui nas para explorar
-                nonExplored.push(successor, manhattanDistance(successor[0], goalState) + distance[successor])
-
-
-            discovered.append(successor)
+                # Includes in discovered nodes to be explored
+                nonExplored.push(successor, heuristic(successor[0], problem) + distance[successor])
+                discovered.append(successor)
         # newNode was explored
         explored.append(newNode)
-
 
     # We should never get to it
     return []
@@ -304,3 +295,5 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+hcs = hillClimbingSearch
+sas = simulatedAnnealingSearch
