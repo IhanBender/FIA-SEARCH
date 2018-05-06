@@ -241,9 +241,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             node = father[node]
 
         # Tira o nodo inicial
-        stack.pop()
-        while stack:
-            path.append(stack.pop())
+        while not stack.isEmpty:
+            value = stack.pop()
+            path.append(value)
 
         return path
 
@@ -276,7 +276,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         newNode = nonExplored.pop()
 
         # If it is the goal Node, create path from begin to it
-        if problem.isGoalState(newNode):
+        if problem.isGoalState(newNode[0]):
             return createPath(newNode, father)
 
         # For each possible successor of node
