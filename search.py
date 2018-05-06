@@ -106,7 +106,7 @@ def search(problem, struct):
                     novoCaminho.append(sucessor)
                     # Insere na estrutura
                     struct.push(novoCaminho)
-    return 
+    return []
 
 
 
@@ -136,10 +136,85 @@ def breadthFirstSearch(problem):
     fila = util.Queue()
     return search(problem, fila)
 
-def uniformCostSearch(problem):
+def uniformCostSearch(problem, goal):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Caminho com estado inicial
+    caminho = [(problem.getStartState(), "Stop", 0)]
+    # Cria uma fila de prioridade
+    borda = util.PriorityQueue()
+    # Insere itens na lista utilizando o custo do caminho como prioridade
+    borda.push(caminho[0], problem.getCostOfActions(caminho[1]))
+    # Lista com estados expandidos
+    expandidos = []
+    while true:
+        # Se a borda esta vazia retorna falha
+        if borda.isEmpty():
+            return []
+        # Pega o estado com menor custo na borda
+        estado = borda.pop()
+        # Se for o estado objetivo retorna o caminho
+        if problem.isGoalState(estado[0]):
+            return (len(expandidos), caminho, len(caminho))
+        # Adiciona o estado a lista de expandidos
+        explorado.append(estado)
+        # Para cada sucessor do estado
+        for sucessor in problem.getSuccessors(estado[0]):
+            """
+            se(filho[0]) nao esta na borda ou explorado entao
+                borda <-- INSIRA(caminho-ate-filho, borda)
+            senao se (filho[0]) esta na borda com maior CUSTO-DE-CAMINHO entao
+                substituir aquele no borda por caminho-ate-filho
+            """
+
+def hillClimbingSearch(problem, goal):
+    # i = false indica um pico
+    i = true
+    # Estado inicial
+    estado = (problem.getStartState(), "Stop", 0)
+    expandidos = []
+    # Lista com o caminho percorrido
+    caminho = []
+    while i:
+        i = false
+        # Verifica todos os sucessores do estado atual
+        for sucessor in problem.getSuccessors(estado):
+            # Compara as distancias dos estados atual e sucessor em relacao ao objetivo
+            if util.manhattanDistance(estado[0], goal) > util.manhattanDistance(sucessor[0], goal):
+                # Se encontrar um maior, continua procurando
+                i = true
+                # sucessor vira o estado atual
+                estado = sucessor
+        # Adiciona o estado aos explorados
+        # Se um novo estado foi visitado, inclui no caminho 
+        if i:
+            explorados.append(estado)
+            caminho.append(estado[1])
+    # directions e uma lista com todas as direcoes partindo do estado inicial para o final
+    directions = []
+    for estado in caminho:
+        # Adiciona os campos de action dos estados a directions
+        directions.append(estado[1])
+    # Retorna a lista de direcoes
+    return (len(expandidos), directions[1:], len(caminho))
+
+def simulatedAnnealingSearch(problem, goal, schedule):
+    # Estado inicial
+    caminho = [(problem.getStartState(), "Stop", 0)]
+    expandidos = []
+    t = 1
+    while true:
+        T = schedule(t)
+        if T == 0:
+            return (len(expandidos), caminho[1:], len(caminho))
+        estado = caminho[len(caminho - 1)]
+        sucessor = random(problem.getSuccessors(estado))
+        deltaE = problem.getCostOfActions(sucessor) - problem.getCostOfActions(estado)
+        expandidos.append(sucessor)
+        if deltaE > 0:
+            caminho.append(sucessor)
+        "else current = next only with probability e^(deltaE/T):
+
 
 def nullHeuristic(state, problem=None):
     """
