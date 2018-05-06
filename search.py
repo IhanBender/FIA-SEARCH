@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -32,7 +32,7 @@ class SearchProblem:
         Returns the start state for the search problem.
         """
         util.raiseNotDefined()
-        return 
+        return
 
     def isGoalState(self, state):
         """
@@ -186,7 +186,7 @@ def hillClimbingSearch(problem, goal):
                 # sucessor vira o estado atual
                 estado = sucessor
         # Adiciona o estado aos explorados
-        # Se um novo estado foi visitado, inclui no caminho 
+        # Se um novo estado foi visitado, inclui no caminho
         if i:
             explorados.append(estado)
             caminho.append(estado[1])
@@ -225,8 +225,84 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    import util
+    from util import manhattanDistance
+
+    def createPath(finalNode, father):
+        stack = util.Stack()
+        path = []
+        node = finalNode
+
+        # While node is not its own father (not in start node)
+        while node != father[node]:
+            # Push node to stack
+            stack.push(node[1])
+            # node becomes it's father
+            node = father[node]
+
+        # Tira o nodo inicial
+        stack.pop()
+        while stack:
+            path.append(stack.pop())
+
+        return path
+
+
+    # Important variables
+    startState = (problem.getStartState(), "Stop", 0)
+    goalState = problem.goal
+
+    # Priority Queue for non explored nodes
+    nonExplored = util.PriorityQueue()
+    nonExplored.push(startState, manhattanDistance(startState[0], goalState))
+
+    # List of explored nodes (empty at begin)
+    explored = []
+    discovered = []
+
+    # Dictionary that keeps all explored nodes fathers (they migth be changed)
+    father = {}
+    # Dicttionary that keeps the shortest distance between explored nodes and the inicial one
+    distance = {}
+
+    # Inicialize both structures with inicial info about starter node
+    father[startState] = startState
+    distance[startState] = 0
+    # ** Distance considers manhattanDistance
+
+    # While there is a node to explore
+    while not nonExplored.isEmpty():
+        # Get node with less heuristic + distance value
+        newNode = nonExplored.pop()
+
+        # If it is the goal Node, create path from begin to it
+        if problem.isGoalState(newNode):
+            return createPath(newNode, father)
+
+        # For each possible successor of node
+        for successor in problem.getSuccessors(newNode[0]):
+            # If successor was already discovered (found or explored)
+            if (successor in discovered) or (successor in explored):
+                # If reached it with sortest path
+                if distance[successor] > distance[newNode] + 1:
+                    # Refresh its distance to inicial and father
+                    distance[successor] = distance[newNode] + 1
+                    father[successor] = newNode
+            else:
+                # Create father and distance
+                distance[successor] = distance[newNode] + 1
+                father[successor] = newNode
+                # Inclui nas para explorar
+                nonExplored.push(successor, manhattanDistance(successor[0], goalState) + distance[successor])
+
+
+            discovered.append(successor)
+        # newNode was explored
+        explored.append(newNode)
+
+
+    # We should never get to it
+    return []
 
 
 # Abbreviations
