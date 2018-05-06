@@ -213,7 +213,7 @@ def simulatedAnnealingSearch(problem, goal, schedule):
         expandidos.append(sucessor)
         if deltaE > 0:
             caminho.append(sucessor)
-        "else current = next only with probability e^(deltaE/T):
+        "else current = next only with probability e^(deltaE/T):"
 
 
 def nullHeuristic(state, problem=None):
