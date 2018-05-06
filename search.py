@@ -136,36 +136,73 @@ def breadthFirstSearch(problem):
     fila = util.Queue()
     return search(problem, fila)
 
-def uniformCostSearch(problem, goal):
+def createPath(finalNode, father):
+    stack = util.Stack()
+    path = []
+    node = finalNode
+
+    # While node is not its own father (not in start node)
+    while node != father[node]:
+        # Push node to stack
+        stack.push(node[1])
+        # node becomes it's father
+        node = father[node]
+
+    # Creates path from starting node to goal
+    while not stack.isEmpty():
+        value = stack.pop()
+        path.append(value)
+
+    return path
+
+def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
     # Caminho com estado inicial
-    caminho = [(problem.getStartState(), "Stop", 0)]
+    startNode = (problem.getStartState(), "Stop", 0)
     # Cria uma fila de prioridade
-    borda = util.PriorityQueue()
-    # Insere itens na lista utilizando o custo do caminho como prioridade
-    borda.push(caminho[0], problem.getCostOfActions(caminho[1]))
+    discovered = util.PriorityQueue()
+    # Estrutura do tipo dicionario para o caminho de cada no ate o inicio
+    caminho = {}
+    # Estrutura do tipo dicionario para saber o pai de cada nodo
+    father = {}
+
+    # Inicia descobertos como 0 de distancia para os outros
+    discovered.push(startNode, 0)
+    # Inicia father com o started
+    father[startNode] = startNode
+    # Inicia o Caminho de startNode
+    caminho[startNode] = 0
     # Lista com estados expandidos
     expandidos = []
-    while true:
-        # Se a borda esta vazia retorna falha
-        if borda.isEmpty():
-            return []
+    # Lista com os estados descobertos
+    descobertos = []
+
+    while not discovered.isEmpty():
         # Pega o estado com menor custo na borda
-        estado = borda.pop()
+        estado = discovered.pop()
+
         # Se for o estado objetivo retorna o caminho
         if problem.isGoalState(estado[0]):
-            return (len(expandidos), caminho, len(caminho))
-        # Adiciona o estado a lista de expandidos
-        explorado.append(estado)
+            return createPath(estado, father)
+
         # Para cada sucessor do estado
         for sucessor in problem.getSuccessors(estado[0]):
-            """
-            se(filho[0]) nao esta na borda ou explorado entao
-                borda <-- INSIRA(caminho-ate-filho, borda)
-            senao se (filho[0]) esta na borda com maior CUSTO-DE-CAMINHO entao
-                substituir aquele no borda por caminho-ate-filho
-            """
+            # Se ainda nao conhecemos
+            if  not (sucessor in expandidos) and not (sucessor in descobertos):
+                caminho[sucessor] = caminho[estado] + 1
+                father[sucessor] = estado
+                descobertos.append(sucessor)
+                discovered.push(sucessor, caminho[sucessor])
+            else:
+                if caminho[sucessor] > caminho[estado] + 1:
+                    caminho[sucessor] = caminho[estado] + 1
+                    father[sucessor] = estado
+
+        # Estado espandido
+        expandidos.append(estado)
+
+    # Nao deveria chegar aqui (caso de erro)
+    return []
 
 def hillClimbingSearch(problem, heuristic):
     # i = false indica um pico
@@ -222,26 +259,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     import util
     from util import manhattanDistance
-
-    def createPath(finalNode, father):
-        stack = util.Stack()
-        path = []
-        node = finalNode
-
-        # While node is not its own father (not in start node)
-        while node != father[node]:
-            # Push node to stack
-            stack.push(node[1])
-            # node becomes it's father
-            node = father[node]
-
-        # Creates path from starting node to goal
-        while not stack.isEmpty():
-            value = stack.pop()
-            path.append(value)
-
-        return path
-
 
     # Important variables
     startState = (problem.getStartState(), "Stop", 0)
