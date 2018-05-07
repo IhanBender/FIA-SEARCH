@@ -227,23 +227,76 @@ def hillClimbingSearch(problem, heuristic):
     # Retorna a lista de direcoes
     return caminho
 
-def simulatedAnnealingSearch(problem, schedule, heuristic):
-    # Estado inicial
-    caminho = [(problem.getStartState(), "Stop", 0)]
-    expandidos = []
-    t = 1
-    while true:
-        T = schedule(t)
-        if T == 0:
-            return caminho[1:]
-        estado = caminho[len(caminho - 1)]
-        sucessor = random(problem.getSuccessors(estado))
-        deltaE = heuristic(estado[0], problem) - heuristic(sucessor[0], problem)
-        expandidos.append(sucessor)
-        if deltaE > 0:
-            caminho.append(sucessor)
-        "else if "
+def simulatedAnnealingSearch(problem, heuristic):
 
+    import random
+    import math
+
+    # Retorna um valor aleatorio entre 0 e 1
+    def randomPercentage():
+        return random.uniform(0, 1)
+
+    # Fator boltzmann e^(-delta/T)
+    def boltzmann(delta, temperature):
+
+        # Calculo de boltzmann
+        b_prob = math.exp(-delta/temperature)
+        # Valor aleatorio entre 0 e 1
+        p = randomPercentage()
+
+        # Se pe for <= que b_prob (probabilidade de ocorrer e igual ao bProb)
+        if p <= b_prob:
+            return True
+
+        return False
+
+    def schedule(t, T0):
+        return T0 / (1 + math.log10(1 + t))
+
+    # Destino aleatorio e possivel
+    def randomNext(state):
+        # Busca todas os proximos nodos possiveis
+        possibilidades = problem.getSuccessors(state)
+        # Valor random entre 0  e o tamanho da lista -1
+        randV = random.randint(0, len(possibilidades) - 1)
+
+        return possibilidades[randV]
+
+
+    # Estado inicial
+    startState = (problem.getStartState(), "Stop", 0)
+    # Caminho percorrido (guloso)
+    caminho = []
+
+    # Temperatura inicial
+    Tinicial = 1
+
+    # time
+    t = 0
+    currentState = startState
+    while True:
+        print t
+        print schedule(t, Tinicial)
+        # Atualiza temperatura (quanto mais iteracoes, menor)
+        T = schedule(t, Tinicial)
+        # Caso alcance estabilidade
+        if T < 0.2:
+            return caminho
+
+        # Proximo nodo aleatorio
+        nextState = randomNext(currentState[0])
+        # Calcula delta
+        delta = heuristic(nextState[0], problem) - heuristic(currentState[0], problem)
+        if delta > 0:
+            # Estado atual muda
+            currentState = nextState
+            caminho.append(currentState[1])
+        else:
+            if boltzmann(delta, T):
+                currentState = nextState
+                caminho.append(currentState[1])
+
+        t += 1
 
 def nullHeuristic(state, problem=None):
     """
