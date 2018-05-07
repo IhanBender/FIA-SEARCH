@@ -126,13 +126,11 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
     pilha = util.Stack()
     return search(problem, pilha)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
     fila = util.Queue()
     return search(problem, fila)
 
@@ -160,16 +158,14 @@ def uniformCostSearch(problem):
     # Caminho com estado inicial
     startNode = (problem.getStartState(), "Stop", 0)
     # Cria uma fila de prioridade
-    discovered = util.PriorityQueue()
+    borda = util.PriorityQueue()
     # Estrutura do tipo dicionario para o caminho de cada no ate o inicio
     caminho = {}
     # Estrutura do tipo dicionario para saber o pai de cada nodo
     father = {}
 
     # Inicia descobertos como 0 de distancia para os outros
-    discovered.push(startNode, 0)
-    # Inicia father com o started
-    father[startNode] = startNode
+    borda.push([startNode], 0)
     # Inicia o Caminho de startNode
     caminho[startNode] = 0
     # Lista com estados expandidos
@@ -177,29 +173,30 @@ def uniformCostSearch(problem):
     # Lista com os estados descobertos
     descobertos = []
 
-    while not discovered.isEmpty():
+    while not borda.isEmpty():
         # Pega o estado com menor custo na borda
-        estado = discovered.pop()
-
+        novoCaminho = borda.pop()
+        estado = novoCaminho[len(novoCaminho) - 1]
         # Se for o estado objetivo retorna o caminho
         if problem.isGoalState(estado[0]):
-            return createPath(estado, father)
+            return [x[1] for x in novoCaminho][1:]
 
         # Para cada sucessor do estado
-        for sucessor in problem.getSuccessors(estado[0]):
-            # Se ainda nao conhecemos
-            if  not (sucessor in expandidos) and not (sucessor in descobertos):
-                caminho[sucessor] = caminho[estado] + 1
-                father[sucessor] = estado
-                descobertos.append(sucessor)
-                discovered.push(sucessor, caminho[sucessor])
-            else:
-                if caminho[sucessor] > caminho[estado] + 1:
-                    caminho[sucessor] = caminho[estado] + 1
-                    father[sucessor] = estado
+        if not(estado[0] in expandidos):
+            for sucessor in problem.getSuccessors(estado[0]):
+                # Se ainda nao conhecemos
+                caminhoSucessor = novoCaminho[:]
+                caminhoSucessor.append(sucessor)
+                if  not ((sucessor in expandidos) or (sucessor in descobertos)):
+                    caminho[sucessor] = caminho[estado] + sucessor[2]
+                    descobertos.append(sucessor)
+                    borda.push(caminhoSucessor, caminho[sucessor])
+                else:
+                    if caminho[sucessor] > caminho[estado] + sucessor[2]:
+                        caminho[sucessor] = caminho[estado] + sucessor[2]
 
-        # Estado espandido
-        expandidos.append(estado)
+            # Estado espandido
+            expandidos.append(estado[0])
 
     # Nao deveria chegar aqui (caso de erro)
     return []
@@ -230,7 +227,7 @@ def hillClimbingSearch(problem, heuristic):
     # Retorna a lista de direcoes
     return caminho
 
-def simulatedAnnealingSearch(problem, goal, schedule):
+def simulatedAnnealingSearch(problem, schedule, heuristic):
     # Estado inicial
     caminho = [(problem.getStartState(), "Stop", 0)]
     expandidos = []
@@ -238,14 +235,14 @@ def simulatedAnnealingSearch(problem, goal, schedule):
     while true:
         T = schedule(t)
         if T == 0:
-            return (len(expandidos), caminho[1:], len(caminho))
+            return caminho[1:]
         estado = caminho[len(caminho - 1)]
         sucessor = random(problem.getSuccessors(estado))
-        deltaE = problem.getCostOfActions(sucessor) - problem.getCostOfActions(estado)
+        deltaE = heuristic(estado[0], problem) - heuristic(sucessor[0], problem)
         expandidos.append(sucessor)
         if deltaE > 0:
             caminho.append(sucessor)
-        "else current = next only with probability e^(deltaE/T):"
+        "else if "
 
 
 def nullHeuristic(state, problem=None):
@@ -278,7 +275,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     # Initialize both structures with initial info about starter node
     father[startState] = startState
-    distance[startState] = 0
+    distance[startState] = startState[2]
     # ** Distance considers manhattanDistance
 
     # While there is a node to explore
@@ -291,21 +288,21 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             return createPath(newNode, father)
 
         # For each possible successor of node
-        for successor in problem.getSuccessors(newNode[0]):
-            # If successor was already discovered (found or explored)
-            if not successor in discovered:
-                # Create father and distance
-                distance[successor] = distance[newNode] + successor[2]
-                father[successor] = newNode
-                # Includes in discovered nodes to be explored
-                nonExplored.push(successor, heuristic(successor[0], problem) + distance[successor])
-                discovered.append(successor)
-        # newNode was explored
-        explored.append(newNode)
+        if not(newNode[0] in explored):
+            for successor in problem.getSuccessors(newNode[0]):
+                # If successor was already discovered (found or explored)
+                if not successor in discovered:
+                    # Create father and distance
+                    distance[successor] = distance[newNode] + successor[2]
+                    father[successor] = newNode
+                    # Includes in discovered nodes to be explored
+                    nonExplored.push(successor, heuristic(successor[0], problem) + distance[successor])
+                    discovered.append(successor)
+            # newNode was explored
+            explored.append(newNode[0])
 
     # We should never get to it
     return []
-
 
 # Abbreviations
 bfs = breadthFirstSearch
