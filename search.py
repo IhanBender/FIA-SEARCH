@@ -275,8 +275,6 @@ def simulatedAnnealingSearch(problem, heuristic):
     t = 0
     currentState = startState
     while True:
-        print t
-        print schedule(t, Tinicial)
         # Atualiza temperatura (quanto mais iteracoes, menor)
         T = schedule(t, Tinicial)
         # Caso alcance estabilidade
@@ -296,6 +294,9 @@ def simulatedAnnealingSearch(problem, heuristic):
                 currentState = nextState
                 caminho.append(currentState[1])
 
+        if problem.isGoalState(currentState[0]):
+            return caminho
+            
         t += 1
 
 def nullHeuristic(state, problem=None):
